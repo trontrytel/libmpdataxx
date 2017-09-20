@@ -1,3 +1,4 @@
+
 if(APPLE)
   # needed for the XCode clang to be identified as AppleClang and not Clang
   cmake_minimum_required(VERSION 3.0) 
@@ -35,7 +36,8 @@ if(
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
 )
-  set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native")
+  #set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native")
+  set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast ")
 
   # preventing Kahan summation from being optimised out
   if (
@@ -144,7 +146,8 @@ endif()
 
 ############################################################################################
 # gnuplot-iostream
-find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
+find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES NAMES gnuplot-iostream.h HINTS ENV GNUPLOT_IOSTREAM_DIR)
+#find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
 if(GNUPLOT-IOSTREAM_INCLUDE_DIR)
   set(libmpdataxx_INCLUDE_DIRS "${libmpdataxx_INCLUDE_DIRS};${GNUPLOT-IOSTREAM_INCLUDE_DIR}")
 else()
