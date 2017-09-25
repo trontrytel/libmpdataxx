@@ -1,4 +1,3 @@
-
 if(APPLE)
   # needed for the XCode clang to be identified as AppleClang and not Clang
   cmake_minimum_required(VERSION 3.0) 

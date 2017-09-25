@@ -1,3 +1,5 @@
+message("AQQ from CMakeLists.txt of libmpdata++") 
+
 cmake_minimum_required(VERSION 2.8.12)
 project(libmpdata++ CXX)
 
