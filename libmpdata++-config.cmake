@@ -159,11 +159,7 @@ endif()
 
 ############################################################################################
 # gnuplot-iostream
-if("${current_host}" MATCHES "sampo")
-  find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES NAMES gnuplot-iostream.h HINTS ENV GNUPLOT_IOSTREAM_DIR)
-else()
-  find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
-endif()
+find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
 if(GNUPLOT-IOSTREAM_INCLUDE_DIR)
   set(libmpdataxx_INCLUDE_DIRS "${libmpdataxx_INCLUDE_DIRS};${GNUPLOT-IOSTREAM_INCLUDE_DIR}")
 else()
