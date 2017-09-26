@@ -1,3 +1,7 @@
+# TODO - tmp
+# get information about current host name
+cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
+
 if(APPLE)
   # needed for the XCode clang to be identified as AppleClang and not Clang
   cmake_minimum_required(VERSION 3.0) 
@@ -35,7 +39,11 @@ if(
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
 )
-  set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native")
+  if("${current_host}" MATCHES "sampo")
+    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast ")
+  else()
+    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native")
+  endif()
 
   # preventing Kahan summation from being optimised out
   if (
@@ -149,10 +157,13 @@ else()
   ")
 endif()
 
-
 ############################################################################################
 # gnuplot-iostream
-find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
+if("${current_host}" MATCHES "sampo")
+  find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES NAMES gnuplot-iostream.h HINTS ENV GNUPLOT_IOSTREAM_DIR)
+else()
+  find_path(GNUPLOT-IOSTREAM_INCLUDE_DIR PATH_SUFFIXES gnuplot-iostream/ NAMES gnuplot-iostream.h)
+endif()
 if(GNUPLOT-IOSTREAM_INCLUDE_DIR)
   set(libmpdataxx_INCLUDE_DIRS "${libmpdataxx_INCLUDE_DIRS};${GNUPLOT-IOSTREAM_INCLUDE_DIR}")
 else()
