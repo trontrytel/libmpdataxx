@@ -46,10 +46,37 @@ namespace libmpdataxx
 	using namespace idxperm;
         av[d](pi<d>(this->left_halo_vctr, j)) = av[d](pi<d>(this->rght_intr_vctr, j));
       }
+      
+      void fill_halos_sgs_div(arr_t &a, const rng_t &j)
+      {
+        fill_halos_sclr(a, j);
+      }
+
+      void fill_halos_sgs_vctr(arrvec_t<arr_t> &av, const arr_t &, const rng_t &j, const int offset = 0)
+      {
+	using namespace idxperm;
+        // the same logic as fill_halos_vctr_alng but have to consider offset ... TODO: find a way to reuse !
+        av[d + offset](pi<d>(this->left_halo_vctr, j)) = av[d + offset](pi<d>(this->rght_intr_vctr, j));
+      }
+      
+      void fill_halos_sgs_tnsr(arrvec_t<arr_t> &av, const arr_t &, const arr_t &, const rng_t &j, const real_t)
+      {
+        fill_halos_vctr_alng(av, j);
+      }
 
       void fill_halos_vctr_nrml(arr_t &a, const rng_t &j)
       {
         fill_halos_sclr(a, j);
+      }
+      
+      void fill_halos_vctr_alng_cyclic(arrvec_t<arr_t> &av, const rng_t &j, const bool ad = false)
+      {
+        fill_halos_vctr_alng(av, j, ad);
+      }
+
+      void fill_halos_vctr_nrml_cyclic(arr_t &a, const rng_t &j)
+      {
+        fill_halos_vctr_nrml(a, j);
       }
     };
 
@@ -89,9 +116,36 @@ namespace libmpdataxx
         av[d](pi<d>(this->rght_halo_vctr, j)) = av[d](pi<d>(this->left_intr_vctr, j));
       }
       
+      void fill_halos_sgs_div(arr_t &a, const rng_t &j)
+      {
+        fill_halos_sclr(a, j);
+      }
+
+      void fill_halos_sgs_vctr(arrvec_t<arr_t> &av, const arr_t &, const rng_t &j, const int offset = 0)
+      {
+	using namespace idxperm;
+        // the same logic as fill_halos_vctr_alng but have to consider offset ... TODO: find a way to reuse !
+        av[d + offset](pi<d>(this->rght_halo_vctr, j)) = av[d + offset](pi<d>(this->left_intr_vctr, j));
+      }
+      
+      void fill_halos_sgs_tnsr(arrvec_t<arr_t> &av, const arr_t &, const arr_t &, const rng_t &j, const real_t)
+      {
+        fill_halos_vctr_alng(av, j);
+      }
+      
       void fill_halos_vctr_nrml(arr_t &a, const rng_t &j)
       {
         fill_halos_sclr(a, j);
+      }
+      
+      void fill_halos_vctr_alng_cyclic(arrvec_t<arr_t> &av, const rng_t &j, const bool ad = false)
+      {
+        fill_halos_vctr_alng(av, j, ad);
+      }
+
+      void fill_halos_vctr_nrml_cyclic(arr_t &a, const rng_t &j)
+      {
+        fill_halos_vctr_nrml(a, j);
       }
     };
   } // namespace bcond

@@ -81,7 +81,7 @@ namespace libmpdataxx
 	virtual void xchng(int e) = 0;
         // TODO: implement flagging of valid/invalid halo for optimisations
 
-        virtual void xchng_vctr_alng(arrvec_t<arr_t>&, const bool ad = false) = 0;
+        virtual void xchng_vctr_alng(arrvec_t<arr_t>&, const bool ad = false, const bool cyclic = false) = 0;
 
         void set_bcs(const int &d, bcp_t &bcl, bcp_t &bcr)
         {
@@ -90,11 +90,29 @@ namespace libmpdataxx
         }
 
 	virtual real_t courant_number(const arrvec_t<arr_t>&) = 0;
+	virtual real_t max_abs_vctr_div(const arrvec_t<arr_t>&) = 0;
        
         // return false if advector does not change in time
         virtual bool calc_gc() {return false;}
 
         virtual void scale_gc(const real_t time, const real_t cur_dt, const real_t old_dt) = 0;
+
+        // thread-aware range extension
+        template <class n_t>
+        rng_t extend_range(const rng_t &r, const n_t n) const
+        {
+          if (mem->size == 1) return r^n;
+          return rank == 0 ? rng_t((r - n).first(), r.last()) :
+                               rank == mem->size - 1 ? rng_t(r.first(), (r + n).last()) :
+                                 r;
+        }
+        
+        // thread-aware range extension, variadic version
+        template <class n_t, class... ns_t>
+        rng_t extend_range(const rng_t &r, const n_t n, const ns_t... ns) const
+        {
+          return extend_range(extend_range(r, n), ns...);
+        }
 
         private:
       
@@ -246,7 +264,7 @@ namespace libmpdataxx
                 while (cfl > max_courant);
               }
             }
-
+            
             hook_ante_step();
 
 	    for (int e = 0; e < n_eqns; ++e) scale(e, ct_params_t::hint_scale(e));
