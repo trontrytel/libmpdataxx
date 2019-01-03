@@ -116,6 +116,11 @@ find_package(OPENMP)
 if(OPENMP_FOUND)
   set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} ${OpenMP_CXX_FLAGS}")
   set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
+
+  set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -L${OPENMP_LIBRARIES}")
+  set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -L${OPENMP_LIBRARIES}")
+  message("OPENMP_CXX_FLAGS")
+  message(${OpenMP_CXX_FLAGS})
 else()
   message(STATUS "OpenMP not supported by the compiler.
 
