@@ -1,10 +1,10 @@
 if(APPLE)
   # needed for the XCode clang to be identified as AppleClang and not Clang
-  cmake_minimum_required(VERSION 3.0) 
+  cmake_minimum_required(VERSION 3.0)
 else()
-  # needed for the OpenMP test to work in C++-only project 
+  # needed for the OpenMP test to work in C++-only project
   # (see http://public.kitware.com/Bug/view.php?id=11910)
-  cmake_minimum_required(VERSION 2.8.8) 
+  cmake_minimum_required(VERSION 2.8.8)
 endif()
 
 # the policies we care about:
@@ -35,7 +35,7 @@ set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -std=c++14 -DBZ_
 ############################################################################################
 # release mode compiler flags
 if(
-  CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
+  CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "Intel"
@@ -47,11 +47,11 @@ if(
     (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 3.6) OR
     (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 6.1) #TODO: never actually checked!
   )
-    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -fno-vectorize") 
+    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -fno-vectorize")
   endif()
 endif()
 
-
+message("libmpdata flags1" ${libmpdataxx_CXX_FLAGS_RELEASE})
 ############################################################################################
 # C++14
 include(CheckCXXSourceCompiles)
@@ -59,8 +59,8 @@ set(CMAKE_REQUIRED_FLAGS "-std=c++14")
 check_cxx_source_compiles("
   #include <type_traits>
   auto f() { return 1;}
-  template <bool a, class b> using ei=std::enable_if<a,b>; 
-  struct a {a(int){}};struct b:a {using a::a;};  
+  template <bool a, class b> using ei=std::enable_if<a,b>;
+  struct a {a(int){}};struct b:a {using a::a;};
   int main(){b i(1);}
 " CXX14_SUPPORTED)
 if (NOT CXX14_SUPPORTED)
@@ -87,8 +87,32 @@ else()
 endif()
 
 ############################################################################################
+
+# Find OpenMP in OSX (TODO tmp)
+set(OPENMP_LIBRARIES "/Users/ajaruga/clones/local_clang/clang+llvm-5.0.0-x86_64-apple-darwin/lib")
+set(OPENMP_INCLUDES "/Users/ajaruga/clones/local_clang/clang+llvm-5.0.0-x86_64-apple-darwin/include")
+
+if(APPLE)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+        set(OpenMP_C "${CMAKE_C_COMPILER}")
+        set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+        set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
+        set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
+        set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
+      set(OpenMP_CXX_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
+      set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
+      set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+      set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
+    endif()
+endif()
+
 # OpenMP
-find_package(OpenMP QUIET)
+find_package(OPENMP)
 if(OPENMP_FOUND)
   set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} ${OpenMP_CXX_FLAGS}")
   set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} ${OpenMP_CXX_FLAGS}")
@@ -99,16 +123,18 @@ else()
   ")
 endif()
 
+message("libmpdata flags2" ${libmpdataxx_CXX_FLAGS_RELEASE})
 
 ############################################################################################
 # multi-threading
 # find_package(ThreadsCXX) <- this requires C language to be enabled
-# TODO: better solution! 
+# TODO: better solution!
 # TODO: not needed for serial-only programs!
 # TODO: -fopenmp implies -pthread on gcc
 set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -pthread")
 set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -pthread")
 
+message("libmpdata flags3" ${libmpdataxx_CXX_FLAGS_RELEASE})
 
 ############################################################################################
 # Boost libraries v>=1.55.0, because boost/predef was added then
@@ -118,8 +144,8 @@ if(Boost_FOUND)
   set(libmpdataxx_LIBRARIES "${libmpdataxx_LIBRARIES};${Boost_LIBRARIES}")
   set(libmpdataxx_INCLUDE_DIRS "${libmpdataxx_INCLUDE_DIRS};${Boost_INCLUDE_DIRS}")
   if(
-    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") 
-    AND (Boost_MINOR_VERSION EQUAL 55) 
+    (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    AND (Boost_MINOR_VERSION EQUAL 55)
   )
     # add a definition -DBOOST_HAS_INT128=1 to clang calls on linux to avoid errors with boost.atomic (https://svn.boost.org/trac/boost/ticket/9610)
     set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -DBOOST_HAS_INT128=1")
@@ -129,7 +155,7 @@ else()
   #TODO: check separately for optional and mandatory components
   message(FATAL_ERROR "Boost (or some of its components) not found.
 
-* Programs based on libmpdata++ will not compile. 
+* Programs based on libmpdata++ will not compile.
 * To insall Boost, please try:
 *   Debian/Ubuntu: sudo apt-get install libboost-all-dev
 *   Fedora: sudo yum install boost-devel
@@ -144,7 +170,7 @@ if(HDF5_FOUND)
   set(libmpdataxx_LIBRARIES "${libmpdataxx_LIBRARIES};${HDF5_LIBRARIES}")
   set(libmpdataxx_INCLUDE_DIRS "${libmpdataxx_INCLUDE_DIRS};${HDF5_INCLUDE_DIRS}")
 else()
-  message(STATUS "HDF5 not found. 
+  message(STATUS "HDF5 not found.
 
 * Programs using libmpdata++'s HDF5 output will not compile.
 * To install HDF5, please try:
@@ -184,6 +210,7 @@ else()
 endif()
 
 
+message("libmpdata flags4" ${libmpdataxx_CXX_FLAGS_RELEASE})
 ############################################################################################
 list(REMOVE_DUPLICATES libmpdataxx_INCLUDE_DIRS)
 list(REMOVE_ITEM libmpdataxx_INCLUDE_DIRS "")
