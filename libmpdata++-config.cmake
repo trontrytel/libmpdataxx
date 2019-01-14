@@ -41,7 +41,8 @@ set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -std=c++14 -DBZ_
 if(
   CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR 
   CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR
-  CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"
+  CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
+  CMAKE_CXX_COMPILER_ID STREQUAL "Intel"
 )
 # march=native doesnt work on sampo because the assembler too old
 # Updating binutils should help:   https://stackoverflow.com/questions/33193970/error-suffix-or-operands-invalid-for-vbroadcastss

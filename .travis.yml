@@ -14,6 +14,7 @@ env:
     - TEST_SUITE=nair_jablonowski_2008
     - TEST_SUITE=UWLCM
     - TEST_SUITE=pbl
+    - TEST_SUITE=osx_local_clang
 
 matrix:
     exclude:
@@ -25,6 +26,12 @@ matrix:
 
         - compiler: clang
           env: TEST_SUITE=UWLCM # UWLCM is not tested on clang yet
+       
+        # local clang tests on osx
+        - os: linux
+          env: TEST_SUITE=osx_local_clang
+        - compiler: gcc
+          env: TEST_SUITE=osx_local_clang
 addons:
   apt:
     packages:
@@ -33,8 +40,6 @@ addons:
     sources: &sources
       - ubuntu-toolchain-r-test
       - llvm-toolchain-trusty-4.0
-
-osx_image: xcode8
 
 before_install:
     # define a compiler variable for use in if statements
@@ -48,11 +53,18 @@ before_install:
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo apt-get update; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then export apt_get_install="apt-get install --no-install-recommends -t trusty -y"; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew update; fi
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/science; fi
+    
+    # Workaround for upgrading gcc, see https://github.com/travis-ci/travis-ci/issues/8826
+    # Seems like this is now done by Travis, but leaving it (commented out) for now
+    #- if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew cask uninstall oclint; fi
+    
+    # needed to get rvm, see below
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -; fi
+    # https://github.com/travis-ci/travis-ci/issues/10165
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then rvm get stable; fi
 
     # fixing broken OSX gzip tools
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then export PATH=/usr/local/bin:$PATH; fi # so that brew-installed ones are first
-    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew tap homebrew/dupes; fi
     - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then brew install gzip; fi
      
     # to avoid problems with plotting by paraview on Travis
@@ -66,6 +78,9 @@ before_install:
     - export PY3DEB=""
     - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++' ]]; then PY3DEB=3; fi
     - if [[ $PY3DEB != '' ]]; then sudo apt-get install python3-dev; fi
+   
+    # upgrade pip
+    - if [[ $TRAVIS_OS_NAME == 'osx' ]]; then sudo pip install --upgrade pip; fi 
  
 install:
     # silence the gazillion warnings coming from blitz headers when using the osx clang
@@ -74,6 +89,8 @@ install:
     # redefine CXX to the actual version used
     - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'clang++' ]]; then export CXX=clang++-4.0; fi
     - if [[ $TRAVIS_OS_NAME == 'linux' && $COMPILER == 'g++'     ]]; then export CXX=g++-6; fi
+    # downloads and setups local clang on osx
+    - if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/setup_local_clang.sh; fi
 
     # boost
     - if [[ $TRAVIS_OS_NAME == 'linux' ]]; then sudo $apt_get_install libboost1.55-all-dev; fi
@@ -137,3 +154,6 @@ script:
     
     # running pbl tests in Release mode
     - if [[ $TEST_SUITE == 'pbl' ]]; then . ./.travis_scripts/pbl.sh; fi
+  
+    # testing local clang on osx
+    - if [[ $TEST_SUITE == 'osx_local_clang' ]]; then . ./.travis_scripts/unit.sh; fi # with '.' to pass env vars
