@@ -1,7 +1,3 @@
-# TODO - tmp
-# get information about current host name
-cmake_host_system_information(RESULT current_host QUERY HOSTNAME)
-
 if(APPLE)
   # needed for the XCode clang to be identified as AppleClang and not Clang
   cmake_minimum_required(VERSION 3.0) 
@@ -30,11 +26,9 @@ set(libmpdataxx_CXX_FLAGS_RELEASE "")
 # libmpdata++ headers for non-default install location (i.e. for make DESTDIR=<dir> install)
 set(libmpdataxx_INCLUDE_DIRS "${CMAKE_CURRENT_LIST_DIR}/../../include/")
 
-
 ############################################################################################
 # debug mode compiler flags
 set(libmpdataxx_CXX_FLAGS_DEBUG "${libmpdataxx_CXX_FLAGS_DEBUG} -std=c++14 -DBZ_DEBUG -g") #TODO: -Og if compiler supports it?
-
 
 ############################################################################################
 # release mode compiler flags
@@ -44,13 +38,8 @@ if(
   CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR
   CMAKE_CXX_COMPILER_ID STREQUAL "Intel"
 )
-# march=native doesnt work on sampo because the assembler too old
-# Updating binutils should help:   https://stackoverflow.com/questions/33193970/error-suffix-or-operands-invalid-for-vbroadcastss
-  if("${current_host}" MATCHES "sampo")
-    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=corei7-avx ")
-  else()
-    set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native ")
-  endif()
+
+  set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -std=c++14 -DNDEBUG -Ofast -march=native ")
 
   # preventing Kahan summation from being optimised out
   if (
@@ -60,7 +49,6 @@ if(
     set(libmpdataxx_CXX_FLAGS_RELEASE "${libmpdataxx_CXX_FLAGS_RELEASE} -fno-vectorize") 
   endif()
 endif()
-
 
 ############################################################################################
 # C++14
